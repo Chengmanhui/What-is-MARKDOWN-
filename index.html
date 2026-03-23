@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Story & Creator</title>
+    
+    <!-- Tailwind CSS Play CDN -->
+    <script type='text/javascript' nonce='6t0gSNgAAm7opdyL/CcRsw==' src='https://aistudio.google.com/EF69X1ziT3NQpOG1x-FTDtjNpicbUIORd4nDieTfVZSUB7Gmm9aRppCY6TkZsF4xb3m00SG-YhlQB_lqD9Miv2l3yNi-TnYE8FMrMoIllRomCKemvG338jN7Q1Pd3L1SNbxnyRLZcDjZdc8cGR7EAb5CkqEOfm72_JC_6lSlNmDrVrmHGMiVEGSujzsiqvRXywDeItW62Z9X-2gP0pMCsLB0LfiMoLkHiMA_wK8laTov0MoXLn652Y2DEdDLfEPHeRyGfjfmsO1yhHEOtrI4BR0ONDoobbycsid86RrN5ahdtvISzV_jo0D5ppDAVwUM4xsagcDjmZsFSlxTq4-0puWWcdTe1ShyJ-HCXa6n0WzjPZ721F58noXqSyHN-pgv6_iTd8MJ5rEjiMJjt-Q-FmRAjhms2ng-1ajcBT3dqkyKMS0I0KIbEUNFljM71JCgc8KHhI5zjjuI7Wrj1mlTsq0P6S2fiGMQnRrW5Prfd4gmj05JMIGrzsoP62FCvO04p6JMlYmaI74Ugw7kbs7-3q9gBvSS3ShmWIUZpmhDMFOaqqHeW9iKhJEP5ukPTBaLNu8t3pIlVpQs8beVZ4jvV2t8NAQahE5t5-uORJLLGgyYo1CeLA'></script><script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+    
+    <!-- React & Babel CDNs -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Framer Motion CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .prose h1 { font-size: 2.25rem; font-weight: 800; margin-top: 1.5rem; margin-bottom: 1rem; }
+        .prose h2 { font-size: 1.875rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .prose h3 { font-size: 1.5rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+        .prose p { margin-bottom: 1rem; line-height: 1.75; }
+        .prose ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
+        .prose ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1rem; }
+        .prose strong { font-weight: 700; }
+        .prose a { color: #10b981; text-decoration: underline; }
+        .prose blockquote { border-left: 4px solid #e5e7eb; padding-left: 1rem; font-style: italic; color: #4b5563; }
+        .prose code { background-color: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
+    </style>
+</head>
+<body class="bg-white text-zinc-900 selection:bg-emerald-100 selection:text-emerald-900">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        
+        // Safely extract Motion components with fallbacks
+        const motion = (window.Motion && window.Motion.motion) || {
+            div: (props) => <div {...props} />,
+            section: (props) => <section {...props} />
+        };
+        const AnimatePresence = (window.Motion && window.Motion.AnimatePresence) || (({children}) => children);
+
+        // --- Icons Component ---
+        const Icon = ({ name, className }) => {
+            const iconRef = useRef(null);
+            useEffect(() => {
+                if (iconRef.current) {
+                    const LucideIcon = lucide.icons[name];
+                    if (LucideIcon) {
+                        const svg = lucide.createIcons({
+                            icons: { [name]: LucideIcon },
+                            attrs: { class: className }
+                        });
+                    }
+                }
+            }, [name, className]);
+            return <span ref={iconRef} data-lucide={name} className={className}></span>;
+        };
+
+        // --- Components ---
+
+        const Header = () => (
+            <header className="py-12 px-6 max-w-4xl mx-auto text-center">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                >
+                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-zinc-900 mb-4">
+                        What is <span className="text-emerald-600">Markdown</span>?
+                    </h1>
+                    <p className="text-xl text-zinc-500 font-medium max-w-2xl mx-auto">
+                        「一位部落客＋一個天才少年」喺 2000 年代初為咗方便寫網誌而創造出嚟
+                    </p>
+                </motion.div>
+            </header>
+        );
+
+        const HistorySection = () => {
+            const people = [
+                {
+                    name: "約翰·格魯伯 (John Gruber)",
+                    role: "主創＋實現者 / 美國科技部落客",
+                    description: "喺 2004 年左右設計出 Markdown 嘅語法，希望用「簡單文字符號」就可以寫好文章，之後再轉成網頁 (HTML)。",
+                    icon: "User"
+                },
+                {
+                    name: "亞倫·斯沃茨 (Aaron Swartz)",
+                    role: "重要協作者＋語法打磨者 / 天才工程師",
+                    description: "一位 17 歲嘅天才工程師，佢幫 John Gruber 測試同打磨 Markdown，對語法設計有好大貢獻。",
+                    icon: "Zap"
+                }
+            ];
+
+            return (
+                <section className="py-16 px-6 bg-zinc-50 border-y border-zinc-200">
+                    <div className="max-w-4xl mx-auto">
+                        <h2 className="text-3xl font-bold mb-12 flex items-center gap-3">
+                            <Icon name="History" className="text-emerald-600 w-8 h-8" />
+                            起源故事
+                        </h2>
+                        <div className="grid md:grid-cols-2 gap-8 mb-12">
+                            {people.map((person, i) => (
+                                <motion.div
+                                    key={person.name}
+                                    initial={{ opacity: 0, x: i % 2 === 0 ? -20 : 20 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    viewport={{ once: true }}
+                                    className="bg-white p-8 rounded-2xl shadow-sm border border-zinc-100"
+                                >
+                                    <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 mb-6">
+                                        <Icon name={person.icon} className="w-6 h-6" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-zinc-900 mb-1">{person.name}</h3>
+                                    <p className="text-sm font-semibold text-emerald-600 mb-4 uppercase tracking-wider">{person.role}</p>
+                                    <p className="text-zinc-600 leading-relaxed">{person.description}</p>
+                                </motion.div>
+                            ))}
+                        </div>
+                        <div className="text-center p-6 bg-emerald-50 rounded-2xl border border-emerald-100">
+                            <p className="text-emerald-800 font-medium">
+                                簡單講：John Gruber「主創＋實現者」, Aaron Swartz「重要協作者＋語法打磨者」
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        const FeaturesSection = () => {
+            const features = [
+                {
+                    title: "簡單",
+                    desc: "你只係用鍵盤打字，加少少符號（例如 #、*、-），就可以有標題、粗體、列表。( 好似在 Facebook、Instagram、Discord 嘅文字，用 **字眼** 會變粗體，用 *字眼* 會變斜體。)",
+                    icon: "Type"
+                },
+                {
+                    title: "純文字",
+                    desc: "文件本質係「純文字檔」，好輕、好易儲、好易傳送，連低效能電腦都睇得。",
+                    icon: "FileText"
+                },
+                {
+                    title: "可以變成網頁",
+                    desc: "好多網站都用 Markdown 嘅內容，再轉成「網頁」俾你睇，所以同一份文件可以喺唔同地方用。",
+                    icon: "Globe"
+                }
+            ];
+
+            return (
+                <section className="py-20 px-6 max-w-4xl mx-auto">
+                    <h2 className="text-3xl font-bold mb-12">Markdown 嘅特點</h2>
+                    <div className="space-y-12">
+                        {features.map((f, i) => (
+                            <motion.div
+                                key={f.title}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: i * 0.1 }}
+                                className="flex gap-6 items-start"
+                            >
+                                <div className="w-14 h-14 shrink-0 bg-zinc-900 text-white rounded-2xl flex items-center justify-center">
+                                    <Icon name={f.icon} className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-bold mb-2">{f.title}</h3>
+                                    <p className="text-lg text-zinc-600 leading-relaxed">{f.desc}</p>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </section>
+            );
+        };
+
+        const AnalogySection = () => (
+            <section className="py-20 px-6 bg-zinc-900 text-white text-center">
+                <div className="max-w-3xl mx-auto">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        className="space-y-6"
+                    >
+                        <h2 className="text-3xl font-bold mb-8">Markdown 就好似「用簡單暗號寫劇本」</h2>
+                        <div className="p-8 bg-zinc-800 rounded-3xl border border-zinc-700">
+                            <p className="text-xl leading-relaxed text-zinc-300">
+                                而 <span className="text-emerald-400 font-bold">瀏覽器</span> 就係按呢啲暗號，幫你排出一份有不同字體、有標題、有列表嘅文章。
+                            </p>
+                        </div>
+                    </motion.div>
+                </div>
+            </section>
+        );
+
+        const MarkdownPlayground = () => {
+            const [text, setText] = useState('# Hello Markdown!\n\nTry typing some **bold** text or a [link](https://google.com).');
+            const [html, setHtml] = useState('');
+
+            useEffect(() => {
+                setHtml(marked.parse(text));
+            }, [text]);
+
+            return (
+                <section className="py-20 px-6 max-w-5xl mx-auto">
+                    <div className="flex items-center gap-3 mb-8">
+                        <Icon name="Code" className="text-emerald-600 w-8 h-8" />
+                        <h2 className="text-3xl font-bold">Markdown 實驗室</h2>
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-8 h-[500px]">
+                        <div className="flex flex-col gap-4">
+                            <label className="text-sm font-bold text-zinc-500 uppercase tracking-widest">編輯器 (Editor)</label>
+                            <textarea
+                                value={text}
+                                onChange={(e) => setText(e.target.value)}
+                                className="flex-1 p-6 bg-zinc-50 border border-zinc-200 rounded-3xl font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all resize-none"
+                            />
+                        </div>
+                        <div className="flex flex-col gap-4">
+                            <label className="text-sm font-bold text-zinc-500 uppercase tracking-widest">預覽 (Preview)</label>
+                            <div className="flex-1 p-6 bg-white border border-zinc-200 rounded-3xl overflow-auto prose prose-zinc prose-emerald max-w-none">
+                                <div className="markdown-body" dangerouslySetInnerHTML={{ __html: html }} />
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        const Footer = () => (
+            <footer className="py-12 px-6 border-t border-zinc-100 text-center text-zinc-400 text-sm">
+                <p>© 2026 Markdown Story & Creator.</p>
+            </footer>
+        );
+
+        const App = () => {
+            return (
+                <div className="min-h-screen bg-white font-sans text-zinc-900 selection:bg-emerald-100 selection:text-emerald-900">
+                    <Header />
+                    <main>
+                        <HistorySection />
+                        <FeaturesSection />
+                        <AnalogySection />
+                        <MarkdownPlayground />
+                    </main>
+                    <Footer />
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
+
