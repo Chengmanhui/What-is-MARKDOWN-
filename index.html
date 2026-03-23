@@ -6,7 +6,7 @@
     <title>Markdown Story & Creator</title>
     
     <!-- Tailwind CSS Play CDN -->
-    <script type='text/javascript' nonce='6t0gSNgAAm7opdyL/CcRsw==' src='https://aistudio.google.com/EF69X1ziT3NQpOG1x-FTDtjNpicbUIORd4nDieTfVZSUB7Gmm9aRppCY6TkZsF4xb3m00SG-YhlQB_lqD9Miv2l3yNi-TnYE8FMrMoIllRomCKemvG338jN7Q1Pd3L1SNbxnyRLZcDjZdc8cGR7EAb5CkqEOfm72_JC_6lSlNmDrVrmHGMiVEGSujzsiqvRXywDeItW62Z9X-2gP0pMCsLB0LfiMoLkHiMA_wK8laTov0MoXLn652Y2DEdDLfEPHeRyGfjfmsO1yhHEOtrI4BR0ONDoobbycsid86RrN5ahdtvISzV_jo0D5ppDAVwUM4xsagcDjmZsFSlxTq4-0puWWcdTe1ShyJ-HCXa6n0WzjPZ721F58noXqSyHN-pgv6_iTd8MJ5rEjiMJjt-Q-FmRAjhms2ng-1ajcBT3dqkyKMS0I0KIbEUNFljM71JCgc8KHhI5zjjuI7Wrj1mlTsq0P6S2fiGMQnRrW5Prfd4gmj05JMIGrzsoP62FCvO04p6JMlYmaI74Ugw7kbs7-3q9gBvSS3ShmWIUZpmhDMFOaqqHeW9iKhJEP5ukPTBaLNu8t3pIlVpQs8beVZ4jvV2t8NAQahE5t5-uORJLLGgyYo1CeLA'></script><script src="https://cdn.tailwindcss.com"></script>
+    <script type='text/javascript' nonce='BSOAE+Bur9YaZ1vAuIpivw==' src='https://aistudio.google.com/9Xj-Ry7u5JEsKlDgjVSPwFevwNKjXPEs-SEDrfPHe9cmsc02ej1eAdS6K_RTbuJV_HjcogEH4qtlIDhGyjNWchzkrAD53ukieUTpYe27c5wCiDTgYcBDxifGXV64XyWWwT3gF5D4q3KEG-O4eHXu73hhPAhCxHOFQjSGA72M5Gxz6jn6X5rCHBaqyUdtJAGkX01B3Tr9A6Ruu3pDnzULatj4j27RfqGQcScIHR0vpkzzz015JBGs8XGcMA-hr3U9yugYUe6WWW5jX5MtlltrD0-gbATMfg6qId_mc9lQ-Y-KlVshawFWknKq5FCc1Aa8-vHy6hdAcNH4MFTepHVmatd9FbCGdKSomGbPfTLgqPMCayCaxUE7ZdQ9viPA0_mpVrLbqWBk9QSiLLbJR9djxnUFPUsb8Jl4V4vogsAPBhVbkrLnsZnsebb8wpy6NS_DilEbkKuxDAA_YEGinfuU2cXxrfQIBgRlcuHiuotaDudkb5tSQHQXqirNIrM8kSt3-A7pMzAKhwC_zOQSzUlJo8Y4_huuGpu8sbMPRIyA-xmMKgsq0rbttZ19AtKJ-CfYKdnMRBFxk6GjLo7Q9t6wkRHMkZaetjutAaN5huysMjq7ZzTSWw'></script><script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
@@ -221,29 +221,57 @@
         const MarkdownPlayground = () => {
             const [text, setText] = useState('# Hello Markdown!\n\nTry typing some **bold** text or a [link](https://google.com).');
             const [html, setHtml] = useState('');
+            const [plainText, setPlainText] = useState('');
 
             useEffect(() => {
-                setHtml(marked.parse(text));
+                const renderedHtml = marked.parse(text);
+                setHtml(renderedHtml);
+                
+                // Convert HTML to plain text by stripping tags
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = renderedHtml;
+                setPlainText(tempDiv.textContent || tempDiv.innerText || '');
             }, [text]);
 
             return (
-                <section className="py-20 px-6 max-w-5xl mx-auto">
+                <section className="py-20 px-6 max-w-7xl mx-auto">
                     <div className="flex items-center gap-3 mb-8">
                         <Icon name="Code" className="text-emerald-600 w-8 h-8" />
                         <h2 className="text-3xl font-bold">Markdown 實驗室</h2>
                     </div>
-                    <div className="grid md:grid-cols-2 gap-8 h-[500px]">
-                        <div className="flex flex-col gap-4">
-                            <label className="text-sm font-bold text-zinc-500 uppercase tracking-widest">編輯器 (Editor)</label>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-auto lg:h-[600px]">
+                        {/* 1. Editor */}
+                        <div className="flex flex-col gap-4 h-[400px] lg:h-full">
+                            <label className="text-sm font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                                <Icon name="Edit3" className="w-4 h-4" />
+                                1. 編輯器 (Markdown)
+                            </label>
                             <textarea
                                 value={text}
                                 onChange={(e) => setText(e.target.value)}
-                                className="flex-1 p-6 bg-zinc-50 border border-zinc-200 rounded-3xl font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all resize-none"
+                                className="flex-1 p-6 bg-zinc-50 border border-zinc-200 rounded-3xl font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all resize-none shadow-inner"
+                                placeholder="在此輸入 Markdown..."
                             />
                         </div>
-                        <div className="flex flex-col gap-4">
-                            <label className="text-sm font-bold text-zinc-500 uppercase tracking-widest">預覽 (Preview)</label>
-                            <div className="flex-1 p-6 bg-white border border-zinc-200 rounded-3xl overflow-auto prose prose-zinc prose-emerald max-w-none">
+
+                        {/* 2. Plain Text */}
+                        <div className="flex flex-col gap-4 h-[400px] lg:h-full">
+                            <label className="text-sm font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                                <Icon name="AlignLeft" className="w-4 h-4" />
+                                2. 純文字 (Plain Text)
+                            </label>
+                            <div className="flex-1 p-6 bg-zinc-100 border border-zinc-200 rounded-3xl overflow-auto font-sans text-zinc-600 whitespace-pre-wrap">
+                                {plainText}
+                            </div>
+                        </div>
+
+                        {/* 3. HTML Preview */}
+                        <div className="flex flex-col gap-4 h-[400px] lg:h-full">
+                            <label className="text-sm font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                                <Icon name="Eye" className="w-4 h-4" />
+                                3. 網頁預覽 (HTML)
+                            </label>
+                            <div className="flex-1 p-6 bg-white border border-zinc-200 rounded-3xl overflow-auto prose prose-zinc prose-emerald max-w-none shadow-sm">
                                 <div className="markdown-body" dangerouslySetInnerHTML={{ __html: html }} />
                             </div>
                         </div>
